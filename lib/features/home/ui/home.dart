@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sample/features/home/bloc/home_bloc.dart';
+import 'package:sample/features/home/ui/product_tile_widget.dart';
 
 import '../../cart/ui/cart.dart';
 import '../../wishlist/ui/wishlist.dart';
@@ -39,21 +40,50 @@ class _HomeState extends State<Home> {
               MaterialPageRoute(
                 builder: (context) => const Wishlist(),
               ));
+        } else if(state is HomeProductItemsCartListedActionState){
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Item carted")));
+        }else if(state is HomeProductItemsWishlistListedActionState){
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Item wishlisted")));
         }
       },
       listenWhen: (previous, current) => current is HomeActionState,
       builder: (context, state) {
-        switch(state.runtimeType){
-          case HomeLoadingState :
-            return Scaffold(body: ,);
-            break;
+        switch (state.runtimeType) {
+          case HomeLoadingState:
+            return Scaffold(
+              body: Center(
+                child: CircularProgressIndicator(),
+              ),
+            );
           case HomeLoadedSuccessState:
-            break;
+            final successState = state as HomeLoadedSuccessState;
+            return Scaffold(
+                appBar: AppBar(
+                    backgroundColor: Colors.teal,
+                    title: const Text(' Grocery App'),
+                    actions: [
+                  IconButton(
+                      onPressed: () {
+                        homeBloc.add(HomeWishlistButtonNavigateEvent());
+                      },
+                      icon: Icon(Icons.favorite_border)),
+                  IconButton(
+                      onPressed: () {
+                        homeBloc.add(HomeCartButtonNavigateEvent());
+                      },
+                      icon: Icon(Icons.shopping_bag_outlined)),
+                ]),body: ListView.builder(
+              itemCount:  successState.products.length,
+              itemBuilder: (context, index) {
+                  return ProductTileWidget(productDataModel: successState.products[index],homeBloc: homeBloc,);
+                },),);
 
           case HomeErrorState:
+            return Scaffold(body: Text("Error"),);
           default:
-
+            return SizedBox();
         }
+
       },
     );
   }
